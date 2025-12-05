@@ -1,0 +1,60 @@
+# Build directories
+build*/
+cmake-build*/
+CMakeFiles/
+CMakeCache.txt
+
+# Qt Creator
+*.pro.user
+*.pro.user.*
+*.qbs.user
+*.qbs.user.*
+*.creator.user
+*.config
+*.files
+*.includes
+*.creator
+
+# qmake generated files
+Makefile*
+*.moc
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+
+# Generated Qt files
+*.qmlc
+*.js.qrc
+*.qrc.dep
+*.moc
+
+# Compiled objects
+*.o
+*.obj
+*.lo
+*.la
+*.lai
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.app
+*.out
+
+# macOS system junk
+.DS_Store
+.idea/
+.vscode/
+
+# CMake install
+_install/
+
+# Logs
+*.log
+
+# Temporary files
+*~
+*.autosave
+*.swp
