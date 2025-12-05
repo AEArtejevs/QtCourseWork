@@ -77,6 +77,21 @@ void ChatServer::handleClientMessage()
         }
         return;
     }
+    if (msg.startsWith("/LEFT|")) {
+
+        QStringList p = msg.split("|");
+        if (p.size() < 2) return;
+
+        int id = p[1].toInt();
+        clientInfos.remove(client); // remove from server memory
+
+        QString msg = "/LEFT|" + QString::number(id);
+        for (QTcpSocket *other : clients) { // informs all
+            if (other != client)
+                other->write(msg.toUtf8() + "\n");
+        }
+        return;
+    }
 
 }
 
@@ -85,8 +100,21 @@ void ChatServer::onClientDisconnected()
     QTcpSocket *client = qobject_cast<QTcpSocket*>(sender());
     if (!client) return;
 
+    if (clientInfos.contains(client)) {
+        int id = clientInfos[client].id;
+
+        QString msg = "/LEFT|" + QString::number(id);
+
+        // broadcast to others
+        for (QTcpSocket *other : clients) {
+            if (other != client)
+                other->write(msg.toUtf8() + "\n");
+        }
+
+        clientInfos.remove(client);
+    }
     clients.removeAll(client);
-    clientInfos.remove(client);
+    // clientInfos.remove(client);
 
     client->deleteLater();
     qDebug() << "Client disconnected";

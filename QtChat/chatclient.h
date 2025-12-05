@@ -24,6 +24,8 @@ public:
     int getId() const; // const cause getter most of the time should be const
     QString getNickname() const;
     QColor getBubbleColor() const;
+    void sendDisconnectNotice();
+
 
 private:
     QTcpSocket* socket;
@@ -34,10 +36,12 @@ private:
 
 private slots: // Use slots when: A button triggers your function, The socket triggers your function; You want something to happen when an event occurs
     void connected();
+    // void disconnected();
     void handleServerMessage();
 
 signals: // Use signals when: You want to tell the UI something happened; You want to tell another object something happened
     void connectedToServer();
+    void clientLeft(int id);
     void chatMessageReceived(int senderId, const QString &nickname, const QString &text, const QColor &color);
     void newClientJoined(int id, const QString &nickname, const QColor &color);
 };

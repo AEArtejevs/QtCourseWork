@@ -40,6 +40,7 @@ ChatClient::ChatClient(QObject *parent)
     bubbleColor(genRandomColor())
 {
     connect(socket, &QTcpSocket::connected, this, &ChatClient::connected);
+    // connect(socket, &QTcpSocket::disconnected, this, &ChatClient::disconnected);
     connect(socket, &QTcpSocket::readyRead, this, &ChatClient::handleServerMessage);
 }
 
@@ -58,40 +59,51 @@ void ChatClient::connected()
 void ChatClient::handleServerMessage()
 {
     while (socket->canReadLine()) {
-    QString msg = QString::fromUtf8(socket->readLine()).trimmed();
+        QString msg = QString::fromUtf8(socket->readLine()).trimmed();
 
-    // New client
-    if (msg.startsWith("/New|")) {
-        QStringList p = msg.split("|");
-        if (p.size() < 4) continue;
+        // New client
+        if (msg.startsWith("/New|")) {
+            QStringList p = msg.split("|");
+            if (p.size() < 4) continue;
 
-        int senderId = p[1].toInt();
-        QString name = p[2];
-        QColor color(p[3]);
-        knownClients[senderId] = { name, color };
+            int senderId = p[1].toInt();
+            QString name = p[2];
+            QColor color(p[3]);
+            knownClients[senderId] = { name, color };
 
-        emit newClientJoined(senderId, name, color);
-        continue;
-    }
+            emit newClientJoined(senderId, name, color);
+            continue;
+        }
 
-    // Chat message
-    if (msg.startsWith("MSG|")) {
-        QStringList p = msg.split("|");
-        if (p.size() < 4) continue;
+        // Chat message
+        if (msg.startsWith("MSG|")) {
+            QStringList p = msg.split("|");
+            if (p.size() < 4) continue;
 
-        int senderId = p[1].toInt();
-        QString name = p[2];
-        QString text = p[3];
-        QColor color;
+            int senderId = p[1].toInt();
+            QString name = p[2];
+            QString text = p[3];
+            QColor color;
 
-        if (senderId == id) // Message is from me
-            color = bubbleColor;
-        else
-            color = knownClients[senderId].color; // Message is from another client
+            if (senderId == id) // Message is from me
+                color = bubbleColor;
+            else
+                color = knownClients[senderId].color; // Message is from another client
 
-        emit chatMessageReceived(senderId, name, text, color);
-        continue;
-    }
+            emit chatMessageReceived(senderId, name, text, color);
+            continue;
+        }
+        if (msg.startsWith("/LEFT|")) {
+            QStringList p = msg.split("|");
+            if (p.size() < 2) continue;
+
+            int id = p[1].toInt();
+
+            knownClients.remove(id); // remove from memory
+            emit clientLeft(id); // update GUI
+
+            continue;
+        }
     }
 }
 
@@ -99,6 +111,22 @@ void ChatClient::sendMessage(const QString &text)
 {
     QString msg = "MSG|" + QString::number(id) + "|" + nickname + "|" + text;
     socket->write(msg.toUtf8() + "\n");
+}
+
+
+// void ChatClient::disconnected(){
+//     QString msg = "/LEFT|" + QString::number(id);
+//     socket->write(msg.toUtf8() + "\n");
+// }
+
+void ChatClient::sendDisconnectNotice()
+{
+    if (socket->state() == QAbstractSocket::ConnectedState) {
+        QString msg = "/LEFT|" + QString::number(id);
+        socket->write(msg.toUtf8() + "\n");
+        socket->flush();
+        socket->waitForBytesWritten(50);
+    }
 }
 
 QColor ChatClient::getBubbleColor() const{ return bubbleColor; }

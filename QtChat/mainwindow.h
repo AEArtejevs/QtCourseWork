@@ -26,7 +26,8 @@ private slots:
     void onSendClicked();
     void onNewClientJoined(int id, QString nickname, QColor color);
     void addClientToList(int id, QString nickname, QColor color);
-
+    void removeClientFromList(int id);
+    void closeEvent(QCloseEvent *event);
 private:
     void addMessageBubble(QString text, QColor color);
 };
